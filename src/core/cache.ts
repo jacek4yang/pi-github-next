@@ -46,8 +46,11 @@ export class ResourceCache {
   private entries = new Map<string, CacheEntry>();
   private totalBytes = 0;
   private clockTick = 0;
+  private readonly now: () => number;
 
-  constructor(private readonly now: () => number = Date.now) {}
+  constructor(now: () => number = Date.now) {
+    this.now = now;
+  }
 
   get size(): number {
     return this.entries.size;

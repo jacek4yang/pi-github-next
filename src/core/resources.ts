@@ -53,12 +53,17 @@ export class GitHubResources {
     { snapshotId: string; projection: string; version: ResourceVersion }
   >();
 
+  private readonly transport: GitHubTransport;
+  private readonly onResourceChanged?: (payload: Record<string, unknown>) => void;
+
   constructor(
-    private readonly transport: GitHubTransport,
+    transport: GitHubTransport,
     mutations: MutationEngine,
     now: () => number = Date.now,
-    private readonly onResourceChanged?: (payload: Record<string, unknown>) => void,
+    onResourceChanged?: (payload: Record<string, unknown>) => void,
   ) {
+    this.transport = transport;
+    this.onResourceChanged = onResourceChanged;
     void mutations;
     this.cache = new ResourceCache(now);
   }

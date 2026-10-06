@@ -160,12 +160,22 @@ export interface MutationOutcome {
 }
 
 export class MutationEngine {
+  private readonly transport: GitHubTransport;
+  private readonly journal: MutationJournal;
+  private readonly now: () => number;
+  private readonly onMutationEvent?: (payload: Record<string, unknown>) => void;
+
   constructor(
-    private readonly transport: GitHubTransport,
-    private readonly journal: MutationJournal,
-    private readonly now: () => number = Date.now,
-    private readonly onMutationEvent?: (payload: Record<string, unknown>) => void,
-  ) {}
+    transport: GitHubTransport,
+    journal: MutationJournal,
+    now: () => number = Date.now,
+    onMutationEvent?: (payload: Record<string, unknown>) => void,
+  ) {
+    this.transport = transport;
+    this.journal = journal;
+    this.now = now;
+    this.onMutationEvent = onMutationEvent;
+  }
 
   /**
    * Execute one mutation with full journal truth:
