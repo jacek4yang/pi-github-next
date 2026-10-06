@@ -3,6 +3,11 @@ on:
   pull_request:
   push:
 
+# Least privilege for public fork PRs: workflows only ever read code and
+# run tests; no secrets exist in these repositories.
+permissions:
+  contents: read
+
 jobs:
   test:
     strategy:
