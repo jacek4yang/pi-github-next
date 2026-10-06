@@ -23,6 +23,7 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { join } from "node:path";
 import { Type } from "typebox";
 import { STACK_INFO } from "./info.ts";
+import { registerGithubService } from "./core/service.ts";
 import { gitHubError } from "./core/errors.ts";
 import { formatRef, parseRef, repoSlug } from "./core/refs.ts";
 import { GitHubTransport } from "./core/transport.ts";
@@ -67,6 +68,10 @@ export default function piGithubNext(pi: ExtensionAPI) {
       // observability is best-effort
     }
   });
+
+  // Public service exposure (CONTRACTS §12): pi-ci-next obtains the shared
+  // GitHub stack over the event bus — single auth/cache/rate-limit/journal.
+  registerGithubService(pi, { transport, resources, engine });
 
   const schema = Type.Object({
     action: Type.Union([
