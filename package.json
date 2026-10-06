@@ -1,0 +1,47 @@
+{
+  "name": "pi-github-next",
+  "version": "0.1.0",
+  "description": "Efficient structured GitHub access for the Pi coding agent: purpose-specific projections, resource-aware ETag cache, singleflight coalescing, rate-limit awareness, and a durable mutation journal with uncertain-outcome reconciliation.",
+  "type": "module",
+  "keywords": [
+    "pi-package"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.19"
+  },
+  "private": true,
+  "pi": {
+    "extensions": [
+      "./src/index.ts"
+    ]
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "format:check": "prettier --check .",
+    "test": "tsx --test test/*.test.ts",
+    "bench": "tsx bench/workload.ts",
+    "soak": "tsx bench/soak.ts",
+    "ci": "npm run check:pi && npm run typecheck && npm run lint && npm run format:check && npm run test",
+    "package-smoke": "node scripts/package-smoke.mjs",
+    "smoke:pi": "node scripts/pi-load-smoke.mjs",
+    "check:pi": "node scripts/check-pi-version.mjs"
+  },
+  "dependencies": {
+    "@octokit/core": "^7.0.8",
+    "@octokit/plugin-retry": "^8.1.1"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "1.0.4",
+    "@types/node": "^26.6.4",
+    "eslint": "^10.12.0",
+    "prettier": "^3.9.9",
+    "tsx": "^4.23.15",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.71.1"
+  }
+}
