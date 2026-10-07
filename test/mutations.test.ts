@@ -352,7 +352,7 @@ test("[G-journal][ci] ci_control mutations are journaled with whitelist enforcem
   try {
     const journal = new MutationJournal(path);
     let posts = 0;
-    const transport = stubTransport((p, method) => {
+    const transport = stubTransport((_p, method) => {
       if (method === "POST") {
         posts++;
         return { status: 200, data: {} };
