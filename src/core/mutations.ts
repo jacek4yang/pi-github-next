@@ -76,6 +76,17 @@ function validateIntent(intent: MutationIntent): void {
     case "create_pr":
     case "add_labels":
       break;
+    case "ci_control": {
+      // CI control endpoints are whitelisted: run cancel/rerun-failed-jobs
+      // and workflow dispatches only (pi-ci-next consumption, CONTRACTS §13).
+      const ciPath = intent.fields.ciPath;
+      const allowed =
+        /^\/repos\/[^/]+\/[^/]+\/actions\/(runs\/\d+\/(cancel|rerun-failed-jobs)|workflows\/.+\/dispatches)$/;
+      if (typeof ciPath !== "string" || !allowed.test(ciPath)) {
+        throw gitHubError("GITHUB_ERROR", "ci_control requires a whitelisted Actions endpoint");
+      }
+      break;
+    }
     default: {
       const exhaustive: never = intent.operation;
       throw gitHubError("GITHUB_ERROR", `unsupported mutation: ${String(exhaustive)}`);
@@ -107,6 +118,8 @@ function mutationPath(intent: MutationIntent): string {
       const number = intent.fields.number as number;
       return `/repos/${repo}/issues/${number}/labels`;
     }
+    case "ci_control":
+      return intent.fields.ciPath as string;
     default: {
       const exhaustive: never = intent.operation;
       throw gitHubError("GITHUB_ERROR", `unsupported mutation: ${String(exhaustive)}`);
@@ -145,6 +158,13 @@ function mutationBody(intent: MutationIntent): Record<string, unknown> {
       };
     case "add_labels":
       return { labels: fields.labels };
+    case "ci_control": {
+      // dispatch carries ref/inputs; cancel/rerun post empty bodies
+      if (typeof fields.inputsJson === "string") {
+        return { ref: fields.ref ?? "main", inputs: JSON.parse(fields.inputsJson) };
+      }
+      return fields.ref !== undefined ? { ref: fields.ref } : {};
+    }
     default: {
       const exhaustive: never = intent.operation;
       throw gitHubError("GITHUB_ERROR", `unsupported mutation: ${String(exhaustive)}`);
@@ -446,6 +466,8 @@ function resultRefFor(intent: MutationIntent, data: unknown): string | undefined
     case "add_labels":
     case "update_issue":
       return `gh:${intent.fields.number !== undefined ? (intent.operation === "add_labels" || intent.operation === "update_issue" ? "issue" : "pr") : "issue"}:${intent.repository}#${intent.fields.number ?? ""}`;
+    case "ci_control":
+      return `gh:ci:${intent.repository}/${intent.fields.ciAction ?? "control"}`;
     default:
       return undefined;
   }

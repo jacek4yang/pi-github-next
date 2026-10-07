@@ -346,3 +346,39 @@ test("[G-journal] invalid transitions degrade instead of corrupting", async () =
     cleanup();
   }
 });
+
+test("[G-journal][ci] ci_control mutations are journaled with whitelist enforcement", async () => {
+  const { path, cleanup } = tempJournal();
+  try {
+    const journal = new MutationJournal(path);
+    let posts = 0;
+    const transport = stubTransport((p, method) => {
+      if (method === "POST") {
+        posts++;
+        return { status: 200, data: {} };
+      }
+      return {};
+    });
+    const engine = new MutationEngine(transport, journal, now);
+    const good: MutationIntent = {
+      operation: "ci_control",
+      repository: "o/r",
+      fields: { ciPath: "/repos/o/r/actions/runs/9001/cancel", ciAction: "cancel" },
+    };
+    const outcome = await engine.execute(good);
+    assert.equal(outcome.state, "completed");
+    assert.equal(posts, 1);
+    assert.match(outcome.resultRef ?? "", /gh:ci:o\/r\/cancel/);
+
+    // non-whitelisted endpoint is rejected before any request
+    const evil: MutationIntent = {
+      operation: "ci_control",
+      repository: "o/r",
+      fields: { ciPath: "/repos/o/r/hooks" },
+    };
+    await assert.rejects(() => engine.execute(evil), /whitelisted/);
+    assert.equal(posts, 1, "no request for rejected intent");
+  } finally {
+    cleanup();
+  }
+});

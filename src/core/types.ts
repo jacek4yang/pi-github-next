@@ -102,7 +102,14 @@ export interface MutationRecord {
 }
 
 export interface MutationIntent {
-  operation: "create_issue" | "comment" | "update_issue" | "create_pr" | "merge_pr" | "add_labels";
+  operation:
+    | "create_issue"
+    | "comment"
+    | "update_issue"
+    | "create_pr"
+    | "merge_pr"
+    | "add_labels"
+    | "ci_control";
   repository: string;
   /** Material fields per operation (validated in mutations.ts). */
   fields: Record<string, string | number | string[] | undefined>;
